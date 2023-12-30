@@ -52,8 +52,35 @@ fn generate_numbers(length: u8) -> Result<String, String> {
     }
 }
 
-fn generate_specials() -> Result<String, String> {
-    Ok(String::from("?"))
+fn generate_specials() -> String {
+    let random_special = rand::thread_rng().gen_range(0..5);
+    SPECIALS[random_special].to_string()
+}
+
+fn generate_password(length: Option<u8>) -> Result<String, String> {
+    match length {
+        Some(_) => todo!(),
+        None => {
+            let mut generated_password: String = Default::default();
+            let words = generate_words(13);
+            match words {
+                Ok(words_value) => {
+                    generated_password.push_str(&words_value);
+                    let numbers = generate_numbers(2);
+                    match numbers {
+                        Ok(numbers_value) => {
+                            generated_password.push_str(&numbers_value);
+                            let specials = generate_specials();
+                            generated_password.push_str(&specials);
+                            Ok(generated_password)
+                        }
+                        Err(e) => Err(e),
+                    }
+                }
+                Err(e) => Err(e),
+            }
+        }
+    }
 }
 
 fn main() {
@@ -64,11 +91,13 @@ fn main() {
     println!("{:#?}", n);
     let s = generate_specials();
     println!("{:#?}", s);
+    let p = generate_password(None).unwrap();
+    println!("{:#?}", p);
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{generate_numbers, generate_specials, generate_words};
+    use crate::{generate_numbers, generate_password, generate_specials, generate_words};
     use regex::Regex;
 
     #[test]
@@ -132,13 +161,14 @@ mod tests {
     #[test]
     fn test_generate_specials() {
         let generated_specials = generate_specials();
-        match generated_specials {
-            Ok(specials) => {
-                assert_eq!(specials.len(), 1);
-                let pattern = Regex::new(r"([!+#/$?])").unwrap();
-                assert!(pattern.is_match(&specials));
-            }
-            Err(_) => todo!(),
-        }
+        assert_eq!(generated_specials.len(), 1);
+        let pattern = Regex::new(r"([!+#/$?])").unwrap();
+        assert!(pattern.is_match(&generated_specials));
+    }
+
+    #[test]
+    fn test_generate_password_none() {
+        let generated_password = generate_password(None).unwrap();
+        assert_eq!(generated_password.len(), 16);
     }
 }
