@@ -59,7 +59,32 @@ fn generate_specials() -> String {
 
 fn generate_password(length: Option<u8>) -> Result<String, String> {
     match length {
-        Some(_) => todo!(),
+        Some(length_value) => {
+            if (16..=64).contains(&length_value) {
+                let mut generated_password: String = Default::default();
+                let words = generate_words(length_value - 3);
+                match words {
+                    Ok(words_value) => {
+                        generated_password.push_str(&words_value);
+                        let numbers = generate_numbers(2);
+                        match numbers {
+                            Ok(numbers_value) => {
+                                generated_password.push_str(&numbers_value);
+                                let specials = generate_specials();
+                                generated_password.push_str(&specials);
+                                Ok(generated_password)
+                            }
+                            Err(e) => Err(e),
+                        }
+                    }
+                    Err(e) => Err(e),
+                }
+            } else {
+                Err(String::from(
+                    "Error: generate password should have a length between 16 and 64.",
+                ))
+            }
+        }
         None => {
             let mut generated_password: String = Default::default();
             let words = generate_words(13);
@@ -93,6 +118,8 @@ fn main() {
     println!("{:#?}", s);
     let p = generate_password(None).unwrap();
     println!("{:#?}", p);
+    let p32 = generate_password(Some(32)).unwrap();
+    println!("{:#?}", p32);
 }
 
 #[cfg(test)]
@@ -170,5 +197,13 @@ mod tests {
     fn test_generate_password_none() {
         let generated_password = generate_password(None).unwrap();
         assert_eq!(generated_password.len(), 16);
+    }
+
+    #[test]
+    fn test_generate_password_some() {
+        let generated_password = generate_password(Some(32)).unwrap();
+        assert_eq!(generated_password.len(), 32);
+        let pattern = Regex::new(r"([a-zA-Z0-9!+#/$?]){16,64}").unwrap();
+        assert!(pattern.is_match(&generated_password));
     }
 }
