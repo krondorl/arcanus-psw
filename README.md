@@ -8,7 +8,8 @@ The aim of this project is to deepen my Rust language skills.
 
 ## Features
 
-Written in the Rust programming language.
+- Written in the Rust programming language.
+- Unit tests.
 
 ## Technical Requirements
 
@@ -42,6 +43,7 @@ In the project root folder, run: `cargo run`
 WukovianeMako18!
 MeriKunoMata32#?
 XuniWabeTim1928!
+FaweXanaToboYisoXiyoSareDahaY08/
 ```
 
 ## Research
