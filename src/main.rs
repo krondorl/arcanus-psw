@@ -1,4 +1,12 @@
+// Copyright (c) 2023 Adam Burucs. MIT license.
+
 use rand::Rng;
+use std::fs;
+
+#[cfg(windows)]
+const NL: &str = "\r\n";
+#[cfg(not(windows))]
+const NL: &str = "\n";
 
 const VOWELS: [&str; 5] = ["a", "e", "i", "o", "u"];
 const CONSONANTS: [&str; 21] = [
@@ -141,6 +149,11 @@ fn generate_list(count: Option<u8>) -> Result<Vec<String>, String> {
     }
 }
 
+fn save_list(list: Vec<String>, file_name: String) -> std::io::Result<()> {
+    fs::write(file_name, list.join(NL)).expect("Error: couldn't write passwords to file.");
+    Ok(())
+}
+
 fn main() {
     println!("Arcanus password generator");
     let w = generate_words(13);
@@ -157,6 +170,11 @@ fn main() {
     println!("{:#?}", ln);
     let ls = generate_list(Some(32)).unwrap();
     println!("{:#?}", ls);
+    let sl = save_list(ls, String::from("passwords.txt"));
+    match sl {
+        Ok(_) => println!("Passwords writing to file was successful."),
+        Err(_) => println!("Error writing to file."),
+    }
 }
 
 #[cfg(test)]
