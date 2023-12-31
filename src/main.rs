@@ -108,6 +108,39 @@ fn generate_password(length: Option<u8>) -> Result<String, String> {
     }
 }
 
+fn generate_list(count: Option<u8>) -> Result<Vec<String>, String> {
+    match count {
+        Some(count_value) => {
+            if (16..=255).contains(&count_value) {
+                let mut list: Vec<String> = Vec::new();
+                for _n in 0..count_value {
+                    let generated_password = generate_password(None);
+                    match generated_password {
+                        Ok(psw_value) => list.push(psw_value),
+                        Err(e) => return Err(e),
+                    }
+                }
+                Ok(list)
+            } else {
+                Err(String::from(
+                    "Error: generate list should have a count between 16 and 255.",
+                ))
+            }
+        }
+        None => {
+            let mut list: Vec<String> = Vec::new();
+            for _n in 0..16 {
+                let generated_password = generate_password(None);
+                match generated_password {
+                    Ok(psw_value) => list.push(psw_value),
+                    Err(e) => return Err(e),
+                }
+            }
+            Ok(list)
+        }
+    }
+}
+
 fn main() {
     println!("Arcanus password generator");
     let w = generate_words(13);
@@ -120,11 +153,17 @@ fn main() {
     println!("{:#?}", p);
     let p32 = generate_password(Some(32)).unwrap();
     println!("{:#?}", p32);
+    let ln = generate_list(None).unwrap();
+    println!("{:#?}", ln);
+    let ls = generate_list(Some(32)).unwrap();
+    println!("{:#?}", ls);
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{generate_numbers, generate_password, generate_specials, generate_words};
+    use crate::{
+        generate_list, generate_numbers, generate_password, generate_specials, generate_words,
+    };
     use regex::Regex;
 
     #[test]
@@ -205,5 +244,17 @@ mod tests {
         assert_eq!(generated_password.len(), 32);
         let pattern = Regex::new(r"([a-zA-Z0-9!+#/$?]){16,64}").unwrap();
         assert!(pattern.is_match(&generated_password));
+    }
+
+    #[test]
+    fn test_generate_list_none() {
+        let generated_list = generate_list(None).unwrap();
+        assert_eq!(generated_list.len(), 16);
+    }
+
+    #[test]
+    fn test_generate_list_some() {
+        let generated_list = generate_list(Some(32)).unwrap();
+        assert_eq!(generated_list.len(), 32);
     }
 }
