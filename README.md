@@ -8,7 +8,7 @@ The aim of this project is to deepen my Rust language skills.
 
 ## Features
 
-- Save to file
+- File handling
 - Handle newlines for Windows, Linux and Mac
 - Written in the Rust programming language
 - Unit tests
