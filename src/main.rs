@@ -1,7 +1,11 @@
 // Copyright (c) 2023 Adam Burucs. MIT license.
 
 use rand::Rng;
-use std::fs;
+use std::{
+    fs::{self, File},
+    io::{self, BufRead},
+    path::Path,
+};
 
 #[cfg(windows)]
 const NL: &str = "\r\n";
@@ -154,6 +158,26 @@ fn save_list(list: Vec<String>, file_name: String) -> std::io::Result<()> {
     Ok(())
 }
 
+fn read_list_util<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
+where
+    P: AsRef<Path>,
+{
+    let file = File::open(filename)?;
+    Ok(io::BufReader::new(file).lines())
+}
+
+fn read_list(filename: String) -> Result<Vec<String>, String> {
+    if let Ok(lines) = read_list_util(filename) {
+        let mut vec = vec![];
+        for line in lines.flatten() {
+            vec.push(line);
+        }
+        Ok(vec)
+    } else {
+        Err(String::from("Error: cannot read file."))
+    }
+}
+
 fn main() {
     println!("Arcanus password generator");
     let w = generate_words(13);
@@ -170,10 +194,15 @@ fn main() {
     println!("{:#?}", ln);
     let ls = generate_list(Some(32)).unwrap();
     println!("{:#?}", ls);
-    let sl = save_list(ls, String::from("passwords.txt"));
-    match sl {
-        Ok(_) => println!("Passwords writing to file was successful."),
-        Err(_) => println!("Error writing to file."),
+    let _sl = save_list(ls, String::from("passwords.txt"));
+    // match sl {
+    //     Ok(_) => println!("Passwords writing to file was successful."),
+    //     Err(_) => println!("Error writing to file."),
+    // }
+    let rl = read_list(String::from("passwords.txt"));
+    match rl {
+        Ok(_) => println!("File read ok"),
+        Err(e) => println!("{e}"),
     }
 }
 
