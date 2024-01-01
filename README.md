@@ -8,6 +8,7 @@ The aim of this project is to deepen my Rust language skills.
 
 ## Features
 
+- Entropy check
 - File handling
 - Handle newlines for Windows, Linux and Mac
 - Written in the Rust programming language
@@ -52,6 +53,9 @@ FaweXanaToboYisoXiyoSareDahaY08/
 
 I used ideas from:
 
+- [Irma Šlekytė: Password entropy: Definition and formula](https://nordvpn.com/blog/what-is-password-entropy/)
+  (Last access: January 1st, 2024.)
+- [How to Calculate Password Entropy?](https://generatepasswords.org/how-to-calculate-entropy/) (Last access: January 1st, 2024.)
 - [Aranza Trevino: Top Five Password Security Tips](https://www.keepersecurity.com/blog/2023/07/18/top-five-password-security-tips/) (Last access: December 25th, 2023.)
 - [Neil J. Rubenking: 3 Simple Tricks for Remembering Strong Passwords](https://www.pcmag.com/how-to/tricks-for-remembering-strong-passwords) (Last access: December 25th, 2023.)
 
