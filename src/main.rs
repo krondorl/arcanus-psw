@@ -20,6 +20,35 @@ const CONSONANTS: [&str; 21] = [
 const NUMBERS: [&str; 10] = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 const SPECIALS: [&str; 6] = ["!", "+", "#", "/", "$", "?"];
 
+// Size of character set. Used for entropy calculation.
+// Multiplier of 2 used because of lower and uppercase chars.
+const SET_SIZE: u8 =
+    (VOWELS.len() as u8 + CONSONANTS.len() as u8) * 2 + NUMBERS.len() as u8 + SPECIALS.len() as u8;
+
+#[derive(Debug, PartialEq)]
+enum PasswordStrength {
+    VeryWeak,
+    Weak,
+    Strong,
+    VeryStrong,
+}
+
+#[derive(Debug, PartialEq)]
+struct Entropy {
+    bits: u8,
+    strength: PasswordStrength,
+}
+
+trait InRange {
+    fn in_range(self, begin: Self, end: Self) -> bool;
+}
+
+impl InRange for f64 {
+    fn in_range(self, begin: f64, end: f64) -> bool {
+        self >= begin && self < end
+    }
+}
+
 fn generate_words(length: u8) -> Result<String, String> {
     if (13..=64).contains(&length) {
         let mut generated_words: String = Default::default();
@@ -178,6 +207,36 @@ fn read_list(filename: String) -> Result<Vec<String>, String> {
     }
 }
 
+// Note: this is just a rough, simplified calculation only.
+// Most of the characters in the generated password are alphabetic.
+// So that is only a set size of 26 * 2 = 52.
+//
+// Todo: modify algorithm to calculate correct entropy.
+fn check_entropy(password: String) -> Result<Entropy, String> {
+    if password.len() >= 16 {
+        let password_length = password.len();
+        let bits = (u128::pow(SET_SIZE.into(), password_length as u32) as f64)
+            .log2()
+            .round();
+        let mut strength: PasswordStrength = PasswordStrength::VeryWeak;
+        match bits {
+            x if x.in_range(0.0, 35.0) => strength = PasswordStrength::VeryWeak,
+            x if x.in_range(36.0, 59.0) => strength = PasswordStrength::Weak,
+            x if x.in_range(60.0, 119.0) => strength = PasswordStrength::Strong,
+            x if x.in_range(120.0, 512.0) => strength = PasswordStrength::VeryStrong,
+            _ => strength = PasswordStrength::VeryWeak,
+        }
+        Ok(Entropy {
+            bits: bits as u8,
+            strength,
+        })
+    } else {
+        Err(String::from(
+            "Error when checking entropy: password length should be at least 16 characters.",
+        ))
+    }
+}
+
 fn main() {
     println!("Arcanus password generator");
     let w = generate_words(13);
@@ -204,12 +263,18 @@ fn main() {
         Ok(_) => println!("File read ok"),
         Err(e) => println!("{e}"),
     }
+
+    let ce = check_entropy(String::from("HokiTiwoYaloM83#")).unwrap();
+    println!();
+    println!("Check entropy");
+    println!("{:#?}", ce);
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        generate_list, generate_numbers, generate_password, generate_specials, generate_words,
+        check_entropy, generate_list, generate_numbers, generate_password, generate_specials,
+        generate_words, Entropy, PasswordStrength::Strong,
     };
     use regex::Regex;
 
@@ -303,5 +368,30 @@ mod tests {
     fn test_generate_list_some() {
         let generated_list = generate_list(Some(32)).unwrap();
         assert_eq!(generated_list.len(), 32);
+    }
+
+    #[test]
+    fn test_check_entropy_ok() {
+        let password: String = String::from("HokiTiwoYaloM83#");
+        let entropy = check_entropy(password);
+        assert_eq!(
+            entropy,
+            Ok(Entropy {
+                bits: 97,
+                strength: Strong,
+            })
+        );
+    }
+
+    #[test]
+    fn test_check_entropy_err() {
+        let password: String = String::from("toka");
+        let entropy = check_entropy(password);
+        assert_eq!(
+            entropy,
+            Err(String::from(
+                "Error when checking entropy: password length should be at least 16 characters.",
+            ))
+        );
     }
 }
