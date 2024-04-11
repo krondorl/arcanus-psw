@@ -1,6 +1,12 @@
 // Copyright (c) 2023 Adam Burucs. MIT license.
 
-use rand::Rng;
+use rand::prelude::*;
+/**
+ * A cryptographically secure random number generator that uses the ChaCha algorithm.
+ * https://crates.io/crates/rand_chacha
+ * https://rust-random.github.io/rand/rand_chacha/
+ */
+use rand_chacha::ChaCha20Rng;
 use std::{
     fs::{self, File},
     io::{self, BufRead},
@@ -54,8 +60,9 @@ fn generate_words(length: u8) -> Result<String, String> {
         let mut generated_words: String = Default::default();
         let mut i = 0;
         while i < length {
+            let mut rng = ChaCha20Rng::from_entropy();
             if i % 2 == 0 {
-                let random_consonant = rand::thread_rng().gen_range(0..20);
+                let random_consonant = rng.gen_range(0..20);
                 if i == 0 || i % 4 == 0 {
                     let uppercase = str::to_uppercase(CONSONANTS[random_consonant]);
                     generated_words.push_str(&uppercase);
@@ -63,7 +70,7 @@ fn generate_words(length: u8) -> Result<String, String> {
                     generated_words.push_str(CONSONANTS[random_consonant]);
                 }
             } else {
-                let random_vowel = rand::thread_rng().gen_range(0..4);
+                let random_vowel = rng.gen_range(0..4);
                 generated_words.push_str(VOWELS[random_vowel]);
             }
             i += 1;
@@ -81,7 +88,8 @@ fn generate_numbers(length: u8) -> Result<String, String> {
         let mut generated_numbers: String = Default::default();
         let mut i = 0;
         while i < length {
-            let random_number = rand::thread_rng().gen_range(0..9);
+            let mut rng = ChaCha20Rng::from_entropy();
+            let random_number = rng.gen_range(0..9);
             generated_numbers.push_str(NUMBERS[random_number]);
             i += 1;
         }
@@ -94,7 +102,8 @@ fn generate_numbers(length: u8) -> Result<String, String> {
 }
 
 fn generate_specials() -> String {
-    let random_special = rand::thread_rng().gen_range(0..5);
+    let mut rng = ChaCha20Rng::from_entropy();
+    let random_special = rng.gen_range(0..5);
     SPECIALS[random_special].to_string()
 }
 
@@ -218,14 +227,13 @@ fn check_entropy(password: String) -> Result<Entropy, String> {
         let bits = (u128::pow(SET_SIZE.into(), password_length as u32) as f64)
             .log2()
             .round();
-        let mut strength: PasswordStrength = PasswordStrength::VeryWeak;
-        match bits {
-            x if x.in_range(0.0, 35.0) => strength = PasswordStrength::VeryWeak,
-            x if x.in_range(36.0, 59.0) => strength = PasswordStrength::Weak,
-            x if x.in_range(60.0, 119.0) => strength = PasswordStrength::Strong,
-            x if x.in_range(120.0, 512.0) => strength = PasswordStrength::VeryStrong,
-            _ => strength = PasswordStrength::VeryWeak,
-        }
+        let strength: PasswordStrength = match bits {
+            x if x.in_range(0.0, 35.0) => PasswordStrength::VeryWeak,
+            x if x.in_range(36.0, 59.0) => PasswordStrength::Weak,
+            x if x.in_range(60.0, 119.0) => PasswordStrength::Strong,
+            x if x.in_range(120.0, 512.0) => PasswordStrength::VeryStrong,
+            _ => PasswordStrength::VeryWeak,
+        };
         Ok(Entropy {
             bits: bits as u8,
             strength,
@@ -245,29 +253,60 @@ fn main() {
     println!("{:#?}", n);
     let s = generate_specials();
     println!("{:#?}", s);
-    let p = generate_password(None).unwrap();
-    println!("{:#?}", p);
-    let p32 = generate_password(Some(32)).unwrap();
-    println!("{:#?}", p32);
-    let ln = generate_list(None).unwrap();
-    println!("{:#?}", ln);
-    let ls = generate_list(Some(32)).unwrap();
-    println!("{:#?}", ls);
-    let _sl = save_list(ls, String::from("passwords.txt"));
-    // match sl {
-    //     Ok(_) => println!("Passwords writing to file was successful."),
-    //     Err(_) => println!("Error writing to file."),
-    // }
-    let rl = read_list(String::from("passwords.txt"));
-    match rl {
-        Ok(_) => println!("File read ok"),
-        Err(e) => println!("{e}"),
+    let p = generate_password(None);
+    match p {
+        Ok(ok_p) => {
+            println!("{:#?}", ok_p);
+        }
+        Err(e) => {
+            println!("Error {:#?}", e);
+        }
+    }
+    let p32 = generate_password(Some(32));
+    match p32 {
+        Ok(ok_p32) => {
+            println!("{:#?}", ok_p32);
+        }
+        Err(e) => {
+            println!("Error {:#?}", e);
+        }
+    }
+    let ln = generate_list(None);
+    match ln {
+        Ok(ok_ln) => {
+            println!("{:#?}", ok_ln);
+        }
+        Err(e) => {
+            println!("Error {:#?}", e);
+        }
+    }
+    let ls = generate_list(Some(32));
+    match ls {
+        Ok(ok_ls) => {
+            println!("{:#?}", ok_ls);
+            let _sl = save_list(ok_ls, String::from("passwords.txt"));
+            let rl = read_list(String::from("passwords.txt"));
+            match rl {
+                Ok(_) => println!("File read ok"),
+                Err(e) => println!("{e}"),
+            }
+        }
+        Err(e) => {
+            println!("Error {:#?}", e);
+        }
     }
 
-    let ce = check_entropy(String::from("HokiTiwoYaloM83#")).unwrap();
-    println!();
-    println!("Check entropy");
-    println!("{:#?}", ce);
+    let ce = check_entropy(String::from("HokiTiwoYaloM83#"));
+    match ce {
+        Ok(ok_ce) => {
+            println!();
+            println!("Check entropy");
+            println!("{:#?}", ok_ce);
+        }
+        Err(e) => {
+            println!("Error {:#?}", e);
+        }
+    }
 }
 
 #[cfg(test)]
