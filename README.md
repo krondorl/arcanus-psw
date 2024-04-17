@@ -1,10 +1,10 @@
 # Arcanus Psw
 
-Generate strong passwords, which you can remember.
+Generate strong passwords that are easier to type without copying and pasting from one device to another.
 
 ## Motivation
 
-The aim of this project is to deepen my Rust language skills.
+This project aims to deepen my Rust language skills.
 
 ## Features
 
@@ -19,6 +19,16 @@ The aim of this project is to deepen my Rust language skills.
 `Rust >= v1.74.1`
 
 ## How to Use
+
+### Run with Docker
+
+You need to have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed on your computer.
+
+1. Open the Terminal and go into project folder
+1. Execute `docker build -t arcanus-psw .`
+1. Then run `docker run -it arcanus-psw`
+
+### Run with Rust and Cargo
 
 First, you need to have [Rust](https://www.rust-lang.org/tools/install) installed on your computer.
 
